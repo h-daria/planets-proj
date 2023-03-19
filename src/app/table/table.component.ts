@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
+import { DialogComponent } from '../dialog/dialog.component';
 import { PlanetData } from '../interfaces/planet-data';
 import { PlanetsDataService } from '../services/planets-data.service';
 
@@ -10,7 +12,7 @@ import { PlanetsDataService } from '../services/planets-data.service';
   styleUrls: ['./table.component.scss'],
 })
 export class TableComponent implements OnInit {
-  columns = [
+  public columns = [
     {
       columnDef: 'name',
       header: 'Name',
@@ -32,34 +34,30 @@ export class TableComponent implements OnInit {
       cell: (planet: PlanetData) => `${planet.population}`,
     },
   ];
-  planetsData: PlanetData[] = [];
-  planetInfo!: PlanetData;
-  dataSource: MatTableDataSource<PlanetData> =
+  public planetsData: PlanetData[] = [];
+  public dataSource: MatTableDataSource<PlanetData> =
     new MatTableDataSource<PlanetData>();
 
-  displayedColumns = this.columns.map((c) => c.columnDef);
-  resultsLength = 0;
-  isLoadingResults = true;
-  isRateLimitReached = false;
+  public displayedColumns = this.columns.map((c) => c.columnDef);
+  public resultsLength = 0;
+  public isLoadingResults = true;
+  public isRateLimitReached = false;
 
-  clickedRows = new Set<PlanetData>();
-  
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   public pageEvent!: PageEvent;
 
-  constructor(private planetsDataService: PlanetsDataService) {}
+  constructor(
+    private planetsDataService: PlanetsDataService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.dataSource.paginator = this.paginator;
     this.getData(0);
-    this.planetsDataService.getPlanetDataById(1).subscribe((data) => {
-      this.planetInfo = data;  
-    });
   }
 
   getData(pageNumber: number): void {
-    this.planetsDataService.getPlanetsData(pageNumber)
-    .subscribe((data) => {
+    this.planetsDataService.getPlanetsData(pageNumber).subscribe((data) => {
       this.isLoadingResults = false;
       this.isRateLimitReached = data === null;
       this.planetsData = data.results;
@@ -69,13 +67,20 @@ export class TableComponent implements OnInit {
   }
 
   changePage(pageEvent: PageEvent) {
-    this.planetsDataService.getPlanetsData(pageEvent.pageIndex)
-    .subscribe((data) => {
-      this.isLoadingResults = false;
-      this.isRateLimitReached = data === null;
-      this.planetsData = data.results;
-      this.resultsLength = data.count;
-      this.dataSource = new MatTableDataSource(this.planetsData);
+    this.planetsDataService
+      .getPlanetsData(pageEvent.pageIndex)
+      .subscribe((data) => {
+        this.isLoadingResults = false;
+        this.isRateLimitReached = data === null;
+        this.planetsData = data.results;
+        this.resultsLength = data.count;
+        this.dataSource = new MatTableDataSource(this.planetsData);
+      });
+  }
+
+  showPlanetResidents(url: string) {
+    this.dialog.open(DialogComponent, {
+      data: url
     });
   }
 }

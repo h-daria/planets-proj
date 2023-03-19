@@ -21,23 +21,14 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row
                 *matRowDef="let row; columns: displayedColumns;"
-                (click)="clickedRows.add(row)"
-                [class.demo-row-is-clicked]="clickedRows.has(row)"></tr>
+                (click)="showPlanetResidents(row.url)"></tr>
         </table>
     </div>
-    <mat-paginator [length]="resultsLength"
-                   [pageSize]="10" 
-                   aria-label="Select page of Planets search results"
-                   (page)="pageEvent = $event; changePage(pageEvent)"
-    ></mat-paginator>
+    <div class="paginator">
+        <mat-paginator [length]="resultsLength"
+                    [pageSize]="10" 
+                    aria-label="Select page of Planets search results"
+                    (page)="pageEvent = $event; changePage(pageEvent)"
+        ></mat-paginator>
+    </div>
 </div>
-
-<div *ngIf="!clickedRows.size">
-    Clicked rows will be logged here
-</div>
-  
-<ul>
-    <li *ngFor="let clickedRow of clickedRows">
-        Clicked on {{clickedRow.name}}
-    </li>
-</ul>
