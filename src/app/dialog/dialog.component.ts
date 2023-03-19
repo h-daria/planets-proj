@@ -1,6 +1,13 @@
-import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
+import { Subscription, takeWhile } from 'rxjs';
 import { PlanetData } from '../interfaces/planet-data';
 import { ResidentData } from '../interfaces/resident-data';
 import { PlanetsDataService } from '../services/planets-data.service';
@@ -14,7 +21,7 @@ export interface DialogData {
   templateUrl: './dialog.component.html',
   styleUrls: ['./dialog.component.scss'],
 })
-export class DialogComponent implements OnInit {
+export class DialogComponent implements OnInit, OnDestroy {
   public planetData!: PlanetData;
   public residents: [] = [];
   public residentsData: ResidentData[] = [];
@@ -38,6 +45,7 @@ export class DialogComponent implements OnInit {
     },
   ];
   public displayedColumns = this.columns.map((c) => c.columnDef);
+  private isSubscribed: boolean = true;
 
   constructor(
     private planetsDataService: PlanetsDataService,
@@ -49,18 +57,27 @@ export class DialogComponent implements OnInit {
     this.getPlanetResidents();
   }
 
+  ngOnDestroy(): void {
+    this.isSubscribed = false;
+  }
+
   getPlanetResidents(): void {
-    this.planetsDataService.getPlanetDataById(this.data).subscribe((data) => {
-      this.residents = data.residents;
-      this.residents.forEach((resident) => {
-        this.planetsDataService.getResidentData(resident)
-        .subscribe((data) => {
-          this.residentsData.push(data);
-          if(this.residentsData.length === this.residents.length) {
-            this.dataSource = new MatTableDataSource(this.residentsData);
-          }
+    this.planetsDataService
+      .getPlanetDataById(this.data)
+      .pipe(takeWhile((_) => this.isSubscribed))
+      .subscribe((data) => {
+        this.residents = data.residents;
+        this.residents.forEach((resident) => {
+          this.planetsDataService
+            .getResidentData(resident)
+            .pipe(takeWhile((_) => this.isSubscribed))
+            .subscribe((data) => {
+              this.residentsData.push(data);
+              if (this.residentsData.length === this.residents.length) {
+                this.dataSource = new MatTableDataSource(this.residentsData);
+              }
+            });
         });
       });
-    });
   }
 }

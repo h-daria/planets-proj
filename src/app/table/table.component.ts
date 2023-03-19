@@ -1,7 +1,8 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
+import { Subscription, takeWhile } from 'rxjs';
 import { DialogComponent } from '../dialog/dialog.component';
 import { PlanetData } from '../interfaces/planet-data';
 import { PlanetsDataService } from '../services/planets-data.service';
@@ -11,7 +12,7 @@ import { PlanetsDataService } from '../services/planets-data.service';
   templateUrl: './table.component.html',
   styleUrls: ['./table.component.scss'],
 })
-export class TableComponent implements OnInit {
+export class TableComponent implements OnInit, OnDestroy {
   public columns = [
     {
       columnDef: 'name',
@@ -45,6 +46,7 @@ export class TableComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   public pageEvent!: PageEvent;
+  private isSubscribed: boolean = true;
 
   constructor(
     private planetsDataService: PlanetsDataService,
@@ -56,19 +58,14 @@ export class TableComponent implements OnInit {
     this.getData(0);
   }
 
-  getData(pageNumber: number): void {
-    this.planetsDataService.getPlanetsData(pageNumber).subscribe((data) => {
-      this.isLoadingResults = false;
-      this.isRateLimitReached = data === null;
-      this.planetsData = data.results;
-      this.resultsLength = data.count;
-      this.dataSource = new MatTableDataSource(this.planetsData);
-    });
+  ngOnDestroy(): void {
+    this.isSubscribed = false;
   }
 
-  changePage(pageEvent: PageEvent) {
+  getData(pageNumber: number): void {
     this.planetsDataService
-      .getPlanetsData(pageEvent.pageIndex)
+      .getPlanetsData(pageNumber)
+      .pipe(takeWhile((_) => this.isSubscribed))
       .subscribe((data) => {
         this.isLoadingResults = false;
         this.isRateLimitReached = data === null;
@@ -78,9 +75,13 @@ export class TableComponent implements OnInit {
       });
   }
 
+  changePage(pageEvent: PageEvent) {
+    this.getData(pageEvent.pageIndex);
+  }
+
   showPlanetResidents(url: string) {
     this.dialog.open(DialogComponent, {
-      data: url
+      data: url,
     });
   }
 }
