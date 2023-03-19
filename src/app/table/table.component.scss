@@ -1,3 +1,9 @@
+h1{
+  text-align: center;
+  margin: 3rem auto;
+  color: rgb(211, 168, 252);
+}
+
 .example-container {
   position: relative;
   width: 70%;
@@ -13,6 +19,7 @@
 
 table {
   width: 100%;
+  background-color: rgb(114, 36, 187);
 }
 
 .example-loading-shade {
@@ -53,6 +60,13 @@ table {
   border-color: currentColor;
 }
 
-.demo-row-is-clicked {
-  font-weight: bold;
+.paginator {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: blueviolet;
+}
+
+mat-paginator {
+  background-color: blueviolet;
 }
