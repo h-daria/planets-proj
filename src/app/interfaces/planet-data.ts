@@ -5,5 +5,6 @@ export interface PlanetData {
     diameter: number,
     climate: string,
     population: number,
-    residents: ResidentData[]
+    residents: ResidentData[],
+    url: string
 }
