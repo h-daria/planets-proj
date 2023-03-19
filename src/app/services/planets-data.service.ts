@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DialogData } from '../dialog/dialog.component';
+import { ResidentData } from '../interfaces/resident-data';
 
 export interface PlanetsApi {
   count: number, 
@@ -26,7 +28,11 @@ export class PlanetsDataService {
     return this.http.get<PlanetsApi>(requestUrl);
   }
 
-  getPlanetDataById(id: number): Observable<any> {
-    return this.http.get(`https://swapi.dev/api/planets/${id}`)
+  getPlanetDataById(url: DialogData): Observable<any> {
+    return this.http.get(`${url}`);
+  }
+
+  getResidentData(url: string): Observable<any> {
+    return this.http.get(`${url}`)
   }
 }
